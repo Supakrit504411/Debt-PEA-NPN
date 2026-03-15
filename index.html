@@ -12,21 +12,56 @@
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #f8f9fa; font-size: 18px; }
     .header-banner { background: linear-gradient(135deg, #6c2d91 0%, #a349a4 100%); color: white; padding: 15px; border-radius: 0 0 15px 15px; }
-    .stat-card { border-radius: 12px; border: none; padding: 8px 12px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); height: 100%; }
-    .stat-label { font-size: 1rem; color: #666; line-height: 1.2; }
-    .stat-value { font-size: 1.6rem; font-weight: 600; line-height: 1.2; }
-    .stat-percent { font-size: 0.9rem; font-weight: normal; color: #888; }
-    .filter-box { background: white; border-radius: 12px; padding: 10px 15px; margin-bottom: 12px; border: 1px solid #ccc; }
-    .form-select { font-size: 18px; height: 45px; border-radius: 10px; }
-    .btn-sm-custom { padding: 6px 16px; font-size: 15px; border-radius: 20px; font-weight: 500; }
-    .table-container { background: white; border-radius: 12px; padding: 10px; overflow-x: auto; }
-    table.dataTable thead th { font-size: 16px; padding: 10px !important; background-color: #eee; }
-    table.dataTable tbody td { font-size: 16px; padding: 10px !important; vertical-align: middle; }
-    .badge-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; cursor: pointer; }
-    #loginPage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #6c2d91; z-index: 10000; display: flex; align-items: center; justify-content: center; }
-    .login-container { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
-    #bigTooltip { position: fixed; background: #333; color: white; padding: 15px 25px; border-radius: 12px; font-size: 26px; font-weight: bold; z-index: 99999; pointer-events: none; display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.4); border: 3px solid #a349a4; }
-    .footer { text-align: center; padding: 20px; font-size: 14px; color: #999; }
+    
+    /* Stats Cards */
+    .stat-card { border-radius: 12px; border: none; padding: 12px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); height: 100%; }
+    .stat-label { font-size: 1rem; color: #666; font-weight: 400; }
+    .stat-value { font-size: 1.8rem; font-weight: 600; color: #333; }
+    .stat-percent { font-size: 0.95rem; color: #888; }
+    
+    /* Filter Box */
+    .filter-box { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #dee2e6; }
+    .form-select { font-size: 18px; height: 50px; border-radius: 12px; border: 2px solid #ddd; }
+    
+    /* ปุ่มตัวกรองและ Active State */
+    .btn-sm-custom { padding: 10px 20px; font-size: 16px; border-radius: 25px; font-weight: 600; transition: all 0.2s; border: 2px solid transparent; }
+    .filter-active { 
+      transform: scale(1.08); 
+      border-color: #333 !important; 
+      box-shadow: 0 0 15px rgba(0,0,0,0.3) !important;
+      z-index: 10;
+    }
+    
+    /* Table Styling */
+    .table-container { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    table.dataTable thead th { background-color: #f1f3f5; color: #495057; font-weight: 600; text-align: center; }
+    
+    .badge-dot { width: 16px; height: 16px; border-radius: 50%; display: inline-block; cursor: pointer; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+
+    /* Login Page Style - แก้ไข z-index เพื่อให้ Alert ทับได้ */
+    #loginPage { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+      background: linear-gradient(135deg, #6c2d91 0%, #3a1c4a 100%); 
+      z-index: 999; /* ปรับลดจาก 10000 เพื่อให้ Alert อยู่ข้างหน้า */
+      display: flex; align-items: center; justify-content: center; 
+    }
+    .login-container { background: white; padding: 40px; border-radius: 25px; width: 95%; max-width: 450px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+
+    /* บังคับเลเยอร์ให้ SweetAlert ลอยขึ้นมาหน้าสุดจริงๆ */
+    .swal2-container {
+      z-index: 100000 !important;
+    }
+
+    /* Big Tooltip กลางจอ */
+    #bigTooltip { 
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+      background: rgba(0, 0, 0, 0.95); color: white; padding: 40px; 
+      border-radius: 30px; font-size: 42px; font-weight: bold; z-index: 99999; 
+      pointer-events: none; display: none; box-shadow: 0 0 100px rgba(0,0,0,0.8); 
+      border: 6px solid #a349a4; text-align: center; min-width: 550px; line-height: 1.5;
+    }
+
+    .footer { text-align: center; padding: 30px; font-size: 14px; color: #adb5bd; }
     .dataTables_filter { display: none; }
     #chartCaptureArea { padding: 20px; background: white; }
   </style>
@@ -37,71 +72,104 @@
 
 <div id="loginPage">
   <div class="login-container shadow-lg">
-    <img src="https://www.pea.co.th/sites/default/files/PEA-Logo.png" width="120" class="mb-3">
-    <h4 class="mb-4" style="font-weight: 600;">ติดตามสถานะ 030 (PEA NPN)</h4>
-    <input type="password" id="passCode" class="form-control mb-4 text-center" 
-           style="height: 60px; font-size: 32px; border-radius: 15px;" placeholder="รหัสผ่าน"
-           onkeyup="if(event.keyCode === 13) checkAccess()">
-    <button class="btn btn-primary w-100" style="height: 60px; font-size: 20px; border-radius: 15px; font-weight: 600;" onclick="checkAccess()">เข้าสู่ระบบ</button>
+    <img src="https://www.pea.co.th/sites/default/files/PEA-Logo.png" width="150" class="mb-4">
+    <h3 class="mb-4" style="font-weight: 600; color: #6c2d91; line-height: 1.4;"> PEA NAKHONPHANOM <br> Debt Tracking System <br><span style="color: #DAA520;"> ติดตามสถานะ 030</span>
+</h3>
+    <input type="password" id="passCode" class="form-control mb-4 text-center" style="height: 70px; font-size: 36px; border-radius: 18px; border: 3px solid #eee;" placeholder="รหัสผ่าน" onkeyup="if(event.keyCode === 13) checkAccess()">
+    <button class="btn btn-primary w-100 shadow" style="height: 65px; font-size: 22px; border-radius: 18px; font-weight: 600; background-color: #6c2d91; border: none;" onclick="checkAccess()">เข้าสู่ระบบ</button>
   </div>
 </div>
 
 <div id="dashboardApp" style="display:none;">
-  <div class="header-banner text-center shadow-sm">
-    <h5 class="mb-0">ระบบติดตามหนี้ค้างชำระ (PEA NPN)</h5>
+  <div class="header-banner text-center shadow">
+    <h4 class="mb-0">ระบบติดตามหนี้ค้างค่าไฟปรับปรุง/Improved Electricity Debt Tracking System (PEA NPN)</h4>
   </div>
 
-  <div class="container-fluid py-2">
-    <div class="row g-2 mb-2 text-center">
-      <div class="col-6"><div class="stat-card border-start border-primary border-4"><div class="stat-label">ยอดค้างรวม (บาท)</div><div class="stat-value text-primary" id="sumAmount">0.00</div><div class="stat-percent">ทั้งหมด <span id="totalJobs">0</span> รายการ</div></div></div>
-      <div class="col-6"><div class="stat-card border-start border-success border-4"><div class="stat-label">ยอดที่ปรับปรุงแล้ว</div><div class="stat-value text-success" id="sumDone">0.00</div><div class="stat-percent" id="pctDone">0%</div></div></div>
-      <div class="col-6"><div class="stat-card border-start border-danger border-4"><div class="stat-label">ยอดรอปรับปรุง</div><div class="stat-value text-danger" id="sumPending">0.00</div><div class="stat-percent" id="pctPending">0%</div></div></div>
-      <div class="col-6"><div class="stat-card border-start border-secondary border-4"><div class="stat-label">สถานะ (รายการ)</div><div class="stat-value"><span class="text-success" id="doneJobs">0</span> / <span class="text-danger" id="pendingJobs">0</span></div><div class="stat-percent">ปรับปรุงแล้ว / รอ</div></div></div>
+  <div class="container-fluid py-3">
+    <div class="row g-3 mb-3 text-center">
+      <div class="col-6 col-md-3">
+        <div class="stat-card border-start border-primary border-5">
+          <div class="stat-label">ยอดค้างรวม (บาท)</div>
+          <div class="stat-value text-primary" id="sumAmount">0.00</div>
+          <div class="stat-percent">ทั้งหมด <span id="totalJobs">0</span> รายการ</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card border-start border-success border-5">
+          <div class="stat-label">ยอดที่ลงสถานะแล้ว</div>
+          <div class="stat-value text-success" id="sumDone">0.00</div>
+          <div class="stat-percent" id="pctDone">0%</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card border-start border-danger border-5">
+          <div class="stat-label">ยอดรอลงสถานะ</div>
+          <div class="stat-value text-danger" id="sumPending">0.00</div>
+          <div class="stat-percent" id="pctPending">0%</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card border-start border-secondary border-5">
+          <div class="stat-label">สถานะ (รายการ)</div>
+          <div class="stat-value"><span class="text-success" id="doneJobs">0</span> / <span class="text-danger" id="pendingJobs">0</span></div>
+          <div class="stat-percent">ปรับปรุงแล้ว / รอ</div>
+        </div>
+      </div>
     </div>
 
     <div class="filter-box shadow-sm">
-      <div class="row g-2 mb-2">
+      <div class="row g-3 mb-3">
         <div class="col-6"><select id="fPEA" class="form-select" onchange="runFilters()"><option value="">ทุก กฟฟ.</option></select></div>
         <div class="col-6"><select id="fReason" class="form-select" onchange="runFilters()"><option value="">ทุกสาเหตุ</option></select></div>
       </div>
-      <div class="d-flex justify-content-center gap-2 flex-wrap mt-1">
-        <button class="btn btn-success btn-sm-custom text-white" onclick="filterStatus('done')">ลงข้อมูลแล้ว</button>
-        <button class="btn btn-danger btn-sm-custom text-white" onclick="filterStatus('pending')">ยังไม่ลง</button>
-        <button class="btn btn-outline-secondary btn-sm-custom" onclick="resetAll()">ล้างค่า</button>
-        <button class="btn btn-primary btn-sm-custom" onclick="openChartModal()">📊 แผนภูมิสรุปผล</button>
+      <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <button id="btnFilterDone" class="btn btn-success btn-sm-custom text-white shadow-sm" onclick="filterStatus('done', this)">ลงข้อมูลแล้ว</button>
+        <button id="btnFilterPending" class="btn btn-danger btn-sm-custom text-white shadow-sm" onclick="filterStatus('pending', this)">ยังไม่ลง</button>
+        <button class="btn btn-outline-secondary btn-sm-custom shadow-sm" onclick="resetAll()">ล้างค่า</button>
+        <button class="btn btn-primary btn-sm-custom shadow-sm" onclick="openChartModal()">📊 แผนภูมิสรุปข้อมูล</button>
       </div>
     </div>
 
     <div class="table-container shadow-sm mb-4">
-      <table id="mainTable" class="table table-sm table-hover w-100">
+      <table id="mainTable" class="table table-hover w-100">
         <thead>
-          <tr><th>#</th><th>กฟฟ.</th><th>ID ผู้ใช้</th><th>ฉบับ</th><th>บิลเก่าสุด</th><th>บิลหลังสุด</th><th>ยอดค้าง</th><th>สาเหตุ</th><th>สถานะ</th><th>ไฟล์</th></tr>
+          <tr>
+            <th>#</th><th>กฟฟ.</th><th>ID ผู้ใช้</th><th>ฉบับ</th><th>บิลเก่าสุด</th><th>บิลหลังสุด</th><th>ยอดค้าง</th><th>สาเหตุ</th><th>สถานะ</th><th>ไฟล์</th>
+          </tr>
         </thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
+
     <footer class="footer">Developed by <strong>PEA Nakhon Phanom</strong> - ผบส.กฟจ.นพ.</footer>
   </div>
 </div>
 
 <div class="modal fade" id="chartModal" tabindex="-1">
-  <div class="modal-dialog modal-fullscreen-sm-down modal-lg">
+  <div class="modal-dialog modal-fullscreen-sm-down modal-xl">
     <div class="modal-content">
-      <div class="modal-header py-2"><h6 class="modal-title">รายงานสรุปผล</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body p-0">
+      <div class="modal-header">
+        <h5 class="modal-title">📊 สรุปสถิติและแผนภูมิการดำเนินงาน</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
         <div id="chartCaptureArea">
-          <h5 class="text-center mb-3" style="font-size: 20px; padding-top:15px;">สรุปผลการดำเนินงาน กฟฟ. ในสังกัด</h5>
-          <canvas id="peaSummaryChart"></canvas>
-          <div id="chartTable" class="mt-3 table-responsive" style="padding:15px; font-size: 14px;"></div>
+          <canvas id="peaSummaryChart" style="max-height: 420px;"></canvas>
+          <div id="chartTable" class="mt-4 table-responsive"></div>
         </div>
       </div>
-      <div class="modal-footer"><button type="button" class="btn btn-primary btn-sm" onclick="downloadChart()">⬇️ ดาวน์โหลดภาพ</button><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ปิด</button></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="downloadChart()">⬇️ ดาวน์โหลดภาพ</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="modal fade" id="fileModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body p-0" id="modalContent"></div></div></div>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content"><div class="modal-body p-0" id="modalContent"></div></div>
+  </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -110,52 +178,57 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  // ** ต้องใส่ URL Web App ของคุณที่นี่ **
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5kyvrt4dBGTnJrJlPA5kL9KOkypT5TQDPkyK90CAWiVIsvtkldzLKjZoql6EUuLg/exec"; 
 
   let table, masterData = [], myChart = null;
 
   async function checkAccess() {
-    const inputPass = $('#passCode').val();
-    if(!inputPass) {
-        Swal.fire('แจ้งเตือน', 'กรุณากรอกรหัสผ่าน', 'warning');
-        return;
-    }
+    const inputPass = document.getElementById('passCode').value;
+    if(!inputPass) { Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', text: 'กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน' }); return; }
 
-    // 1. เพิ่ม SweetAlert Loading
+    // 1. แสดงตัวหมุนทันที (คราวนี้จะลอยทับหน้า Login ได้แล้ว)
     Swal.fire({
-      title: 'กำลังตรวจสอบรหัสผ่าน...',
+      title: 'กำลังตรวจสอบสิทธิ์เข้าใช้งาน...',
+      text: 'ระบบกำลังดึงข้อมูลรหัสผ่านจากฐานข้อมูลหลัก',
       allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); }
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading(); 
+      }
     });
 
-    try {
-      const response = await fetch(`${SCRIPT_URL}?action=getPass`);
-      const serverPass = await response.json();
-      
-      if (inputPass === serverPass) {
-        Swal.fire({ icon: 'success', title: 'รหัสผ่านถูกต้อง', timer: 1000, showConfirmButton: false });
-        $('#loginPage').fadeOut();
-        $('#dashboardApp').fadeIn();
-        loadData();
-      } else {
-        Swal.fire('ผิดพลาด!', 'รหัสผ่านไม่ถูกต้อง', 'error');
+    // 2. หน่วงเวลา 1.5 วินาทีเพื่อให้เห็นตัวหมุนแน่นอนก่อนยิง API
+    setTimeout(async () => {
+      try {
+        const response = await fetch(`${SCRIPT_URL}?action=getPass`);
+        const serverPass = await response.json();
+        
+        if (inputPass === serverPass.toString()) {
+          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'เข้าสู่ระบบเรียบร้อยแล้ว', timer: 1200, showConfirmButton: false });
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('dashboardApp').style.display = 'block';
+          loadData();
+        } else {
+          Swal.fire({ icon: 'error', title: 'ผิดพลาด!', text: 'รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง' });
+        }
+      } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Connection Error', text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้' });
       }
-    } catch (e) {
-      Swal.fire('Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
-    }
+    }, 1500); 
   }
 
   async function loadData() {
-    Swal.fire({ title: 'กำลังโหลดข้อมูล...', showConfirmButton: false, didOpen: () => Swal.showLoading() });
-    const response = await fetch(`${SCRIPT_URL}?action=getData`);
-    const data = await response.json();
-    Swal.close();
-    data.shift(); 
-    masterData = data;
-    renderTable(masterData);
-    populateSelects(masterData);
-    updateDashboardCards();
+    Swal.fire({ title: 'กำลังโหลดข้อมูลหนี้ค้าง...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=getData`);
+      const data = await response.json();
+      Swal.close();
+      data.shift(); 
+      masterData = data;
+      renderTable(masterData);
+      populateSelects(masterData);
+      updateDashboardCards();
+    } catch(e) { Swal.fire('Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error'); }
   }
 
   function renderTable(data) {
@@ -164,90 +237,204 @@
       const statusRaw = row[9] ? row[9].toString().trim() : "";
       const isDone = statusRaw !== "";
       const dotClass = isDone ? 'bg-success' : 'bg-danger';
-      const hoverMsg = isDone ? statusRaw : "ยังไม่มีข้อมูลสถานะ";
-      const fileBtn = row[10] ? `<button class="btn btn-sm btn-outline-primary py-0" style="font-size: 14px;" onclick="viewFile('${row[10]}')">ดู</button>` : `<input type="file" class="d-none" id="f${i}" onchange="upload(this, ${i})"><button class="btn btn-sm btn-light py-0 text-muted shadow-sm" style="font-size: 14px;" onclick="document.getElementById('f${i}').click()">อัป</button>`;
-      html += `<tr><td>${i+1}</td><td>${row[0]}</td><td>${row[2]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${row[6]}</td><td>${row[7]}</td><td>${row[8]}</td><td data-search="${isDone?'done':'pending'}"><span class="badge-dot ${dotClass}" onmouseover="showBigTip(event, '${hoverMsg}')" onmouseout="hideBigTip()"></span></td><td>${fileBtn}</td></tr>`;
+      const hoverMsg = isDone ? statusRaw : "ยังไม่มีข้อมูลการดำเนินการล่าสุด";
+      
+      const debtVal = row[7] ? row[7].toString() : "0";
+      const fileBtn = row[10] ? `<button class="btn btn-sm btn-outline-primary px-3" onclick="viewFile('${row[10]}')">เปิดไฟล์</button>` : `<input type="file" class="d-none" id="f${i}" onchange="upload(this, ${i})"><button class="btn btn-sm btn-light border shadow-sm" onclick="document.getElementById('f${i}').click()">แนบไฟล์</button>`;
+      
+      html += `<tr>
+        <td class="text-center">${i+1}</td>
+        <td class="fw-bold">${row[0]}</td>
+        <td>${row[2]}</td>
+        <td>${row[4]}</td>
+        <td>${row[5]}</td>
+        <td>${row[6]}</td>
+        <td class="text-primary fw-bold">${parseFloat(debtVal.replace(/,/g, '')).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+        <td>${row[8]}</td>
+        <td data-search="${isDone?'done':'pending'}" class="text-center">
+          <span class="badge-dot ${dotClass}" onmouseover="showBigTip('${hoverMsg}')" onmouseout="hideBigTip()"></span>
+        </td>
+        <td class="text-center">${fileBtn}</td>
+      </tr>`;
     });
-    $('#tableBody').html(html);
-    table = $('#mainTable').DataTable({ paging: true, pageLength: 10, lengthChange: false, info: false, columnDefs: [{ className: "text-nowrap", targets: "_all" }] });
+    document.getElementById('tableBody').innerHTML = html;
+    
+    if (table) table.destroy();
+    
+    table = $('#mainTable').DataTable({ 
+      paging: true, 
+      pageLength: 20, 
+      lengthChange: false, 
+      info: false, 
+      columnDefs: [{ className: "text-nowrap", targets: "_all" }] 
+    });
+    
     table.on('draw', updateDashboardCards);
   }
 
-  function showBigTip(e, m) { $('#bigTooltip').html("📌 ข้อมูล:<br>" + m).css({ top: e.clientY - 100, left: e.clientX + 30 }).show(); }
-  function hideBigTip() { $('#bigTooltip').hide(); }
+  function showBigTip(m) { 
+    const tip = document.getElementById('bigTooltip');
+    tip.innerHTML = "<span style='color:#a349a4;'>📝 รายละเอียดสถานะล่าสุด</span><br><hr style='border: 2.5 solid #a349a4;'>" + m;
+    tip.style.display = 'block';
+  }
+  function hideBigTip() { document.getElementById('bigTooltip').style.display = 'none'; }
 
   function updateDashboardCards() {
     if (!table) return;
     const filteredRows = table.rows({ search: 'applied' }).nodes();
-    let totalDebt = 0, doneAmt = 0, pendAmt = 0, doneCount = 0, pendCount = 0;
+    let totalDebt = 0, doneAmt = 0, pendAmt = 0, dC = 0, pC = 0;
+    
     $(filteredRows).each(function() {
-      let debt = parseFloat($(this).find('td:eq(6)').text().replace(/,/g, '')) || 0;
+      let debtText = $(this).find('td:eq(6)').text().replace(/,/g, '');
+      let debt = parseFloat(debtText) || 0;
       let status = $(this).find('td:eq(8)').attr('data-search');
+      
       totalDebt += debt;
-      if (status === 'done') { doneAmt += debt; doneCount++; } 
-      else { pendAmt += debt; pendCount++; }
+      if (status === 'done') { doneAmt += debt; dC++; } else { pendAmt += debt; pC++; }
     });
-    $('#sumAmount').text(totalDebt.toLocaleString(undefined, {minimumFractionDigits: 2}));
-    $('#sumDone').text(doneAmt.toLocaleString(undefined, {minimumFractionDigits: 2}));
-    $('#sumPending').text(pendAmt.toLocaleString(undefined, {minimumFractionDigits: 2}));
-    $('#totalJobs').text(doneCount + pendCount); $('#doneJobs').text(doneCount); $('#pendingJobs').text(pendCount);
-    $('#pctDone').text(`คิดเป็น ${totalDebt > 0 ? ((doneAmt / totalDebt) * 100).toFixed(1) : 0}%`);
-    $('#pctPending').text(`คิดเป็น ${totalDebt > 0 ? ((pendAmt / totalDebt) * 100).toFixed(1) : 0}%`);
+    
+    document.getElementById('sumAmount').innerText = totalDebt.toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('sumDone').innerText = doneAmt.toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('sumPending').innerText = pendAmt.toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('totalJobs').innerText = (dC + pC);
+    document.getElementById('doneJobs').innerText = dC;
+    document.getElementById('pendingJobs').innerText = pC;
+    document.getElementById('pctDone').innerText = `คิดเป็น ${totalDebt > 0 ? ((doneAmt/totalDebt)*100).toFixed(1) : 0}%`;
+    document.getElementById('pctPending').innerText = `คิดเป็น ${totalDebt > 0 ? ((pendAmt/totalDebt)*100).toFixed(1) : 0}%`;
   }
 
   function populateSelects(data) {
     const peas = [...new Set(data.map(r => r[0]))].filter(v => v).sort();
     const reas = [...new Set(data.map(r => r[8]))].filter(v => v).sort();
-    peas.forEach(v => $('#fPEA').append(`<option value="${v}">${v}</option>`));
-    reas.forEach(v => $('#fReason').append(`<option value="${v}">${v}</option>`));
+    const fPEA = document.getElementById('fPEA');
+    const fReason = document.getElementById('fReason');
+    peas.forEach(v => { let opt = new Option(v, v); fPEA.add(opt); });
+    reas.forEach(v => { let opt = new Option(v, v); fReason.add(opt); });
   }
 
-  function runFilters() { table.column(1).search($('#fPEA').val()); table.column(7).search($('#fReason').val()).draw(); }
-  function filterStatus(s) { table.column(8).search(s).draw(); }
-  function resetAll() { $('#fPEA, #fReason').val(''); table.search('').columns().search('').draw(); }
+  function runFilters() {
+    table.column(1).search(document.getElementById('fPEA').value);
+    table.column(7).search(document.getElementById('fReason').value);
+    table.draw();
+  }
+
+  // --- ปรับปรุง: ฟังก์ชันคลิกปุ่มเดิมซ้ำเพื่อคืนค่า (Toggle Filter) ---
+  function filterStatus(s, btn) { 
+    // เช็คว่าปุ่มที่กดตอนนี้มีคลาส filter-active อยู่ก่อนแล้วหรือไม่
+    const isActive = $(btn).hasClass('filter-active');
+
+    // ล้างสถานะปุ่มตัวกรองทั้งหมดก่อนเสมอ
+    $('.btn-sm-custom').removeClass('filter-active');
+    
+    if (isActive) {
+      // กรณีคลิกซ้ำที่ปุ่มเดิม -> ยกเลิกตัวกรองทั้งหมด คืนค่าแสดงงานทั้งหมด
+      table.column(8).search('').draw();
+    } else {
+      // กรณีคลิกที่ปุ่มใหม่ -> กรองงานตามสถานะที่เลือก และเซตปุ่มให้เด่น (Active)
+      $(btn).addClass('filter-active');
+      table.column(8).search(s).draw(); 
+    }
+  }
+
+  function resetAll() { 
+    $('.btn-sm-custom').removeClass('filter-active');
+    document.getElementById('fPEA').value = ''; 
+    document.getElementById('fReason').value = ''; 
+    table.search('').columns().search('').draw(); 
+  }
 
   function viewFile(url) {
     const previewUrl = url.replace('/view?usp=drivesdk', '/preview');
-    $('#modalContent').html(`<iframe src="${previewUrl}" width="100%" height="550px" frameborder="0"></iframe>`);
+    document.getElementById('modalContent').innerHTML = `<iframe src="${previewUrl}" width="100%" height="600px" frameborder="0"></iframe>`;
     new bootstrap.Modal('#fileModal').show();
   }
 
   async function upload(input, idx) {
     if (!input.files[0]) return;
-    Swal.fire({ title: 'กำลังอัปโหลด...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    Swal.fire({ title: 'กำลังอัปโหลดไฟล์เข้าระบบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ base64: e.target.result, fileName: input.files[0].name, rowId: idx + 1 }) });
-      const res = await response.json();
-      if(res.success) { Swal.fire({ icon: 'success', title: 'อัปโหลดสำเร็จ!', timer: 1000, showConfirmButton: false }); loadData(); }
+      try {
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ base64: e.target.result, fileName: input.files[0].name, rowId: idx + 1 }) });
+        const res = await response.json();
+        if(res.success) { Swal.fire({ icon: 'success', title: 'สำเร็จ!', timer: 1200, showConfirmButton: false }); loadData(); }
+      } catch(err) { Swal.fire('Error', 'ไม่สามารถอัปโหลดไฟล์ได้', 'error'); }
     };
     reader.readAsDataURL(input.files[0]);
   }
 
   function openChartModal() {
     const summary = {};
-    const filteredNodes = table.rows({ search: 'applied' }).data();
-    for(let i=0; i<filteredNodes.length; i++) {
-        let r = filteredNodes[i];
-        let p = r[1], d = parseFloat(r[6].replace(/,/g, '')) || 0, s = r[8].includes('done');
-        if (!summary[p]) summary[p] = { tA: 0, dA: 0, pA: 0 };
-        summary[p].tA += d;
-        if (s) { summary[p].dA += d; } else { summary[p].pA += d; }
-    }
+    const filteredRows = table.rows({ search: 'applied' }).nodes();
+
+    $(filteredRows).each(function() {
+      const pea = $(this).find('td:eq(1)').text();
+      let debtText = $(this).find('td:eq(6)').text().replace(/,/g, '');
+      let debt = parseFloat(debtText) || 0;
+      const status = $(this).find('td:eq(8)').attr('data-search');
+
+      if (!summary[pea]) summary[pea] = { tJ: 0, tA: 0, dJ: 0, dA: 0, pJ: 0, pA: 0 };
+      summary[pea].tJ++;
+      summary[pea].tA += debt;
+      if (status === 'done') { summary[pea].dJ++; summary[pea].dA += debt; }
+      else { summary[pea].pJ++; summary[pea].pA += debt; }
+    });
+
     const labels = Object.keys(summary);
+    if (labels.length === 0) return;
+    
     if (myChart) myChart.destroy();
-    myChart = new Chart(document.getElementById('peaSummaryChart'), {
+    const ctx = document.getElementById('peaSummaryChart').getContext('2d');
+    myChart = new Chart(ctx, {
       type: 'bar',
-      data: { labels: labels, datasets: [{ label: 'ปรับแล้ว (บาท)', data: labels.map(l => summary[l].dA), backgroundColor: '#198754' }, { label: 'รอ (บาท)', data: labels.map(l => summary[l].pA), backgroundColor: '#dc3545' }] },
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'ปรับปรุงแล้ว (บาท)', data: labels.map(l => summary[l].dA), backgroundColor: '#198754' },
+          { label: 'รอปรับปรุง (บาท)', data: labels.map(l => summary[l].pA), backgroundColor: '#dc3545' }
+        ]
+      },
       options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true } } }
     });
-    let h = '<table class="table table-bordered text-center table-sm mt-2"><thead><tr class="table-light"><th>กฟฟ.</th><th>ยอดรวม</th><th>ปรับแล้ว %</th><th>รอ %</th></tr></thead><tbody>';
-    labels.forEach(l => { const s = summary[l]; h += `<tr><td>${l}</td><td>${s.tA.toLocaleString()}</td><td class="text-success">${(s.dA/s.tA*100||0).toFixed(1)}%</td><td class="text-danger">${(s.pA/s.tA*100||0).toFixed(1)}%</td></tr>`; });
-    $('#chartTable').html(h + '</tbody></table>');
+
+    let h = `<table class="table table-bordered table-striped text-center">
+              <thead class="table-dark">
+                <tr>
+                  <th>กฟฟ.</th>
+                  <th>ยอดรวมค้าง (บาท)</th>
+                  <th>ลงสถานะแล้ว (งาน / บาท)</th>
+                  <th>ลงสถานะแล้ว %</th>
+                  <th>ยังไม่ลงสถานะ (งาน / บาท)</th>
+                  <th>ยังไม่ลงสถานะ %</th>
+                </tr>
+              </thead>
+              <tbody>`;
+    labels.forEach(l => {
+      const s = summary[l];
+      const pD = ((s.dA/s.tA)*100 || 0).toFixed(1);
+      const pP = ((s.pA/s.tA)*100 || 0).toFixed(1);
+      h += `<tr>
+              <td class="fw-bold">${l}</td>
+              <td>${s.tA.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+              <td class="text-success">${s.dJ} งาน / ${s.dA.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+              <td class="text-success fw-bold">${pD}%</td>
+              <td class="text-danger">${s.pJ} งาน / ${s.pA.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+              <td class="text-danger fw-bold">${pP}%</td>
+            </tr>`;
+    });
+    h += '</tbody></table>';
+    document.getElementById('chartTable').innerHTML = h;
     new bootstrap.Modal('#chartModal').show();
   }
 
-  function downloadChart() { html2canvas(document.getElementById('chartCaptureArea')).then(canvas => { const link = document.createElement('a'); link.download = 'Summary.png'; link.href = canvas.toDataURL(); link.click(); }); }
+  function downloadChart() {
+    html2canvas(document.getElementById('chartCaptureArea')).then(canvas => {
+      const link = document.createElement('a');
+      link.download = 'PEA_NPN_Report_Summary.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    });
+  }
 </script>
 </body>
 </html>
