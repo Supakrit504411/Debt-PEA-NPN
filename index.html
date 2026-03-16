@@ -36,23 +36,22 @@
     .table-container { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     table.dataTable thead th { background-color: #f1f3f5; color: #495057; font-weight: 600; text-align: center; }
     
+    /* คอลัมน์ กฟฟ. แบบลดขนาด */
+    .col-pea-small { font-size: 14px; color: #777; width: 80px !important; }
+
     .badge-dot { width: 16px; height: 16px; border-radius: 50%; display: inline-block; cursor: pointer; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
 
-    /* Login Page Style - แก้ไข z-index เพื่อให้ Alert ทับได้ */
+    /* Login Page Style */
     #loginPage { 
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
       background: linear-gradient(135deg, #6c2d91 0%, #3a1c4a 100%); 
-      z-index: 999; /* ปรับลดจาก 10000 เพื่อให้ Alert อยู่ข้างหน้า */
+      z-index: 999; 
       display: flex; align-items: center; justify-content: center; 
     }
     .login-container { background: white; padding: 40px; border-radius: 25px; width: 95%; max-width: 450px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 
-    /* บังคับเลเยอร์ให้ SweetAlert ลอยขึ้นมาหน้าสุดจริงๆ */
-    .swal2-container {
-      z-index: 100000 !important;
-    }
+    .swal2-container { z-index: 100000 !important; }
 
-    /* Big Tooltip กลางจอ */
     #bigTooltip { 
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
       background: rgba(0, 0, 0, 0.95); color: white; padding: 40px; 
@@ -73,8 +72,7 @@
 <div id="loginPage">
   <div class="login-container shadow-lg">
     <img src="https://www.pea.co.th/sites/default/files/PEA-Logo.png" width="150" class="mb-4">
-    <h3 class="mb-4" style="font-weight: 600; color: #6c2d91; line-height: 1.4;"> PEA NAKHONPHANOM <br> Debt Tracking System <br><span style="color: #DAA520;"> ติดตามสถานะ 030</span>
-</h3>
+    <h3 class="mb-4" style="font-weight: 600; color: #6c2d91; line-height: 1.4;"> PEA NAKHONPHANOM <br> Debt Tracking System <br><span style="color: #DAA520;"> ติดตามสถานะ 030</span></h3>
     <input type="password" id="passCode" class="form-control mb-4 text-center" style="height: 70px; font-size: 36px; border-radius: 18px; border: 3px solid #eee;" placeholder="รหัสผ่าน" onkeyup="if(event.keyCode === 13) checkAccess()">
     <button class="btn btn-primary w-100 shadow" style="height: 65px; font-size: 22px; border-radius: 18px; font-weight: 600; background-color: #6c2d91; border: none;" onclick="checkAccess()">เข้าสู่ระบบ</button>
   </div>
@@ -134,7 +132,16 @@
       <table id="mainTable" class="table table-hover w-100">
         <thead>
           <tr>
-            <th>#</th><th>กฟฟ.</th><th>ID ผู้ใช้</th><th>ฉบับ</th><th>บิลเก่าสุด</th><th>บิลหลังสุด</th><th>ยอดค้าง</th><th>สาเหตุ</th><th>สถานะ</th><th>ไฟล์</th>
+            <th>#</th>
+            <th>กฟฟ.</th>
+            <th>ชื่อ-สกุล</th> <th>ID ผู้ใช้</th>
+            <th>ฉบับ</th>
+            <th>บิลเก่าสุด</th>
+            <th>บิลหลังสุด</th>
+            <th>ยอดค้าง</th>
+            <th>สาเหตุ</th>
+            <th>สถานะ</th>
+            <th>นำทาง</th> <th>ไฟล์</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -186,23 +193,18 @@
     const inputPass = document.getElementById('passCode').value;
     if(!inputPass) { Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', text: 'กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน' }); return; }
 
-    // 1. แสดงตัวหมุนทันที (คราวนี้จะลอยทับหน้า Login ได้แล้ว)
     Swal.fire({
       title: 'กำลังตรวจสอบสิทธิ์เข้าใช้งาน',
       text: 'AI Detector',
       allowOutsideClick: false,
       showConfirmButton: false,
-      didOpen: () => {
-        Swal.showLoading(); 
-      }
+      didOpen: () => { Swal.showLoading(); }
     });
 
-    // 2. หน่วงเวลา 1.5 วินาทีเพื่อให้เห็นตัวหมุนแน่นอนก่อนยิง API
     setTimeout(async () => {
       try {
         const response = await fetch(`${SCRIPT_URL}?action=getPass`);
         const serverPass = await response.json();
-        
         if (inputPass === serverPass.toString()) {
           Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'เข้าสู่ระบบเรียบร้อยแล้ว', timer: 1200, showConfirmButton: false });
           document.getElementById('loginPage').style.display = 'none';
@@ -240,12 +242,19 @@
       const hoverMsg = isDone ? statusRaw : "ยังไม่มีข้อมูลการดำเนินการล่าสุด";
       
       const debtVal = row[7] ? row[7].toString() : "0";
+      
+      // ดึงข้อมูลพิกัด (Long=12, Lat=13)
+      const lng = row[12];
+      const lat = row[13];
+      const navBtn = (lat && lng) ? 
+        `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="btn btn-sm btn-info text-white shadow-sm px-2">📍 นำทาง</a>` : 
+        `<span class="text-muted small">ไม่มีพิกัด</span>`;
+
       const fileBtn = row[10] ? `<button class="btn btn-sm btn-outline-primary px-3" onclick="viewFile('${row[10]}')">เปิดไฟล์</button>` : `<input type="file" class="d-none" id="f${i}" onchange="upload(this, ${i})"><button class="btn btn-sm btn-light border shadow-sm" onclick="document.getElementById('f${i}').click()">แนบไฟล์</button>`;
       
       html += `<tr>
         <td class="text-center">${i+1}</td>
-        <td class="fw-bold">${row[0]}</td>
-        <td>${row[2]}</td>
+        <td class="col-pea-small">${row[0]}</td> <td class="fw-bold">${row[3] || "-"}</td> <td>${row[2]}</td>
         <td>${row[4]}</td>
         <td>${row[5]}</td>
         <td>${row[6]}</td>
@@ -254,7 +263,7 @@
         <td data-search="${isDone?'done':'pending'}" class="text-center">
           <span class="badge-dot ${dotClass}" onmouseover="showBigTip('${hoverMsg}')" onmouseout="hideBigTip()"></span>
         </td>
-        <td class="text-center">${fileBtn}</td>
+        <td class="text-center">${navBtn}</td> <td class="text-center">${fileBtn}</td>
       </tr>`;
     });
     document.getElementById('tableBody').innerHTML = html;
@@ -285,9 +294,10 @@
     let totalDebt = 0, doneAmt = 0, pendAmt = 0, dC = 0, pC = 0;
     
     $(filteredRows).each(function() {
-      let debtText = $(this).find('td:eq(6)').text().replace(/,/g, '');
+      // ปรับ Index การดึงยอดค้างเนื่องจากเพิ่มคอลัมน์ชื่อมาแทรก (จาก eq(6) เป็น eq(7))
+      let debtText = $(this).find('td:eq(7)').text().replace(/,/g, '');
       let debt = parseFloat(debtText) || 0;
-      let status = $(this).find('td:eq(8)').attr('data-search');
+      let status = $(this).find('td:eq(9)').attr('data-search');
       
       totalDebt += debt;
       if (status === 'done') { doneAmt += debt; dC++; } else { pendAmt += debt; pC++; }
@@ -314,25 +324,18 @@
 
   function runFilters() {
     table.column(1).search(document.getElementById('fPEA').value);
-    table.column(7).search(document.getElementById('fReason').value);
+    table.column(8).search(document.getElementById('fReason').value); // ปรับ Index ตัวกรอง
     table.draw();
   }
 
-  // --- ปรับปรุง: ฟังก์ชันคลิกปุ่มเดิมซ้ำเพื่อคืนค่า (Toggle Filter) ---
   function filterStatus(s, btn) { 
-    // เช็คว่าปุ่มที่กดตอนนี้มีคลาส filter-active อยู่ก่อนแล้วหรือไม่
     const isActive = $(btn).hasClass('filter-active');
-
-    // ล้างสถานะปุ่มตัวกรองทั้งหมดก่อนเสมอ
     $('.btn-sm-custom').removeClass('filter-active');
-    
     if (isActive) {
-      // กรณีคลิกซ้ำที่ปุ่มเดิม -> ยกเลิกตัวกรองทั้งหมด คืนค่าแสดงงานทั้งหมด
-      table.column(8).search('').draw();
+      table.column(9).search('').draw(); // ปรับ Index ตามคอลัมน์ใหม่
     } else {
-      // กรณีคลิกที่ปุ่มใหม่ -> กรองงานตามสถานะที่เลือก และเซตปุ่มให้เด่น (Active)
       $(btn).addClass('filter-active');
-      table.column(8).search(s).draw(); 
+      table.column(9).search(s).draw(); 
     }
   }
 
@@ -369,9 +372,9 @@
 
     $(filteredRows).each(function() {
       const pea = $(this).find('td:eq(1)').text();
-      let debtText = $(this).find('td:eq(6)').text().replace(/,/g, '');
+      let debtText = $(this).find('td:eq(7)').text().replace(/,/g, '');
       let debt = parseFloat(debtText) || 0;
-      const status = $(this).find('td:eq(8)').attr('data-search');
+      const status = $(this).find('td:eq(9)').attr('data-search');
 
       if (!summary[pea]) summary[pea] = { tJ: 0, tA: 0, dJ: 0, dA: 0, pJ: 0, pA: 0 };
       summary[pea].tJ++;
@@ -390,8 +393,8 @@
       data: {
         labels: labels,
         datasets: [
-          { label: 'ปรับปรุงแล้ว (บาท)', data: labels.map(l => summary[l].dA), backgroundColor: '#198754' },
-          { label: 'รอปรับปรุง (บาท)', data: labels.map(l => summary[l].pA), backgroundColor: '#dc3545' }
+          { label: 'ลงสถานะแล้ว (บาท)', data: labels.map(l => summary[l].dA), backgroundColor: '#198754' },
+          { label: 'ยังไม่ลงสถานะ (บาท)', data: labels.map(l => summary[l].pA), backgroundColor: '#dc3545' }
         ]
       },
       options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true } } }
