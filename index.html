@@ -32,7 +32,7 @@
       z-index: 10;
     }
     
-    /* Table Styling & Mobile Fixes */
+    /* Table Styling */
     .table-container { 
       background: white; 
       border-radius: 15px; 
@@ -42,20 +42,46 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* ปรับขนาดฟอนต์บนมือถือเพื่อให้สมส่วน */
+    /* --- ส่วนที่แก้ไข: ปรับขนาดฟอนต์คอลัมน์เฉพาะจุด --- */
+    #mainTable tbody td:nth-child(3), /* ชื่อ-สกุล */
+    #mainTable tbody td:nth-child(4), /* ID ผู้ใช้ */
+    #mainTable tbody td:nth-child(9)  /* สาเหตุ */ {
+      font-size: 14px !important;
+    }
+
+    /* บีบความกว้างคอลัมน์ บิลเก่าสุด (6) และ บิลหลังสุด (7) */
+    #mainTable thead th:nth-child(6), #mainTable tbody td:nth-child(6),
+    #mainTable thead th:nth-child(7), #mainTable tbody td:nth-child(7) {
+      max-width: 85px !important;
+      min-width: 85px !important;
+      font-size: 13px !important;
+      text-align: center !important;
+      padding-left: 5px !important;
+      padding-right: 5px !important;
+    }
+
     @media (max-width: 768px) {
       table.dataTable { font-size: 14px !important; }
       .stat-value { font-size: 1.4rem; }
       .header-banner h4 { font-size: 1.1rem; }
     }
 
-    table.dataTable thead th { background-color: #f1f3f5; color: #495057; font-weight: 600; text-align: center; }
+    /* --- ส่วนที่แก้ไข: ลดขนาดหัวตาราง --- */
+    table.dataTable thead th { 
+      background-color: #f1f3f5; 
+      color: #495057; 
+      font-weight: 600; 
+      text-align: center;
+      font-size: 14px !important; /* ปรับลดจากเดิม */
+      padding: 12px 8px !important;
+    }
     
-    /* สไตล์เฉพาะสำหรับ กฟฟ. และ ชื่อ-สกุล */
     .col-pea-small { font-size: 13px; color: #888; width: 80px !important; text-align: center; }
     .col-name-wrap { white-space: normal !important; min-width: 160px; line-height: 1.3; }
 
     .badge-dot { width: 16px; height: 16px; border-radius: 50%; display: inline-block; cursor: pointer; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+    .btn-note { border-radius: 50%; width: 32px; height: 32px; padding: 0; line-height: 32px; border: none; font-size: 14px; transition: 0.3s; }
+    .btn-note:hover { transform: scale(1.2); }
 
     /* Login Page Style */
     #loginPage { 
@@ -66,7 +92,6 @@
     }
     .login-container { background: white; padding: 40px; border-radius: 25px; width: 95%; max-width: 450px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 
-    /* SweetAlert บังคับลอยทับทุกอย่าง */
     .swal2-container { z-index: 100000 !important; }
 
     /* Big Tooltip */
@@ -82,7 +107,6 @@
     .dataTables_filter { display: none; }
     #chartCaptureArea { padding: 20px; background: white; }
     
-    /* สไตล์คำเตือนหน้า Login */
     .pea-warning-box {
       background-color: #fff5f5;
       border: 2px solid #fc8181;
@@ -92,6 +116,18 @@
       font-size: 16px;
       margin-bottom: 20px;
       font-weight: 600;
+    }
+
+    /* สไตล์การเบลอชื่อ */
+    .blur-text { 
+      cursor: pointer; 
+      transition: filter 0.3s; 
+      user-select: none; 
+      display: inline-block;
+    }
+    .blur-text.active { 
+      filter: blur(0); 
+      user-select: auto; 
     }
   </style>
 </head>
@@ -125,32 +161,39 @@
 
   <div class="container-fluid py-3">
     <div class="row g-3 mb-3 text-center">
-      <div class="col-6 col-md-3">
+      <div class="col-6 col-md-2">
         <div class="stat-card border-start border-primary border-5">
-          <div class="stat-label">ยอดค้างรวม (บาท)</div>
+          <div class="stat-label">ยอดค้างรวม</div>
           <div class="stat-value text-primary" id="sumAmount">0.00</div>
-          <div class="stat-percent">ทั้งหมด <span id="totalJobs">0</span> รายการ</div>
+          <div class="stat-percent"><span id="totalJobs">0</span> รายการ</div>
         </div>
       </div>
-      <div class="col-6 col-md-3">
+      <div class="col-6 col-md-2">
         <div class="stat-card border-start border-success border-5">
-          <div class="stat-label">ยอดที่ลงสถานะแล้ว</div>
+          <div class="stat-label">ลงสถานะแล้ว</div>
           <div class="stat-value text-success" id="sumDone">0.00</div>
           <div class="stat-percent" id="pctDone">0%</div>
         </div>
       </div>
-      <div class="col-6 col-md-3">
+      <div class="col-12 col-md-4">
+        <div class="stat-card border-start border-warning border-5" style="background: #fffdf0;">
+          <div class="stat-label">ยอดเงินที่ "ชำระแล้ว"</div>
+          <div class="stat-value text-warning" id="sumPaidReal">0.00</div>
+          <div class="stat-percent">(บาท)</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-2">
         <div class="stat-card border-start border-danger border-5">
           <div class="stat-label">ยอดรอลงสถานะ</div>
           <div class="stat-value text-danger" id="sumPending">0.00</div>
           <div class="stat-percent" id="pctPending">0%</div>
         </div>
       </div>
-      <div class="col-6 col-md-3">
+      <div class="col-6 col-md-2">
         <div class="stat-card border-start border-secondary border-5">
           <div class="stat-label">สถานะ (รายการ)</div>
           <div class="stat-value"><span class="text-success" id="doneJobs">0</span> / <span class="text-danger" id="pendingJobs">0</span></div>
-          <div class="stat-percent">ปรับปรุงแล้ว / รอ</div>
+          <div class="stat-percent">ปรับปรุง / รอ</div>
         </div>
       </div>
     </div>
@@ -164,6 +207,8 @@
         <button id="btnFilterDone" class="btn btn-success btn-sm-custom text-white shadow-sm" onclick="filterStatus('done', this)">ลงข้อมูลแล้ว</button>
         <button id="btnFilterPending" class="btn btn-danger btn-sm-custom text-white shadow-sm" onclick="filterStatus('pending', this)">ยังไม่ลง</button>
         <button class="btn btn-outline-secondary btn-sm-custom shadow-sm" onclick="resetAll()">ล้างค่า</button>
+        <button id="btnBlurToggle" class="btn btn-dark btn-sm-custom shadow-sm" style="display:none;" onclick="toggleBlurAll()">👁️ แสดงชื่อทั้งหมด</button>
+        <button class="btn btn-info btn-sm-custom text-white shadow-sm" onclick="loadData()">🔄 รีโหลดข้อมูล</button>
         <button class="btn btn-primary btn-sm-custom shadow-sm" onclick="openChartModal()">📊 แผนภูมิสรุปข้อมูล</button>
       </div>
     </div>
@@ -182,8 +227,10 @@
             <th>ยอดค้าง</th>
             <th>สาเหตุ</th>
             <th>สถานะ</th>
+            <th>หมายเหตุ</th> 
             <th>นำทาง</th>
-            <th>ไฟล์</th>
+            <th>ไฟล์ 1</th> 
+            <th>ไฟล์ 2</th> 
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -243,26 +290,29 @@
       didOpen: () => { Swal.showLoading(); }
     });
 
-    setTimeout(async () => {
-      try {
-        const response = await fetch(`${SCRIPT_URL}?action=getPass`);
-        const serverPass = await response.json();
-        if (inputPass === serverPass.toString()) {
-          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'เข้าสู่ระบบเรียบร้อยแล้ว', timer: 1200, showConfirmButton: false });
-          document.getElementById('loginPage').style.display = 'none';
-          document.getElementById('dashboardApp').style.display = 'block';
-          loadData();
-        } else {
-          Swal.fire({ icon: 'error', title: 'ผิดพลาด!', text: 'รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง' });
-        }
-      } catch (e) {
-        Swal.fire({ icon: 'error', title: 'Connection Error', text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้' });
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=getPass`);
+      const serverPass = await response.json();
+      if (inputPass === serverPass.toString()) {
+        Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'เข้าสู่ระบบเรียบร้อยแล้ว', timer: 1200, showConfirmButton: false });
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('dashboardApp').style.display = 'block';
+        loadData();
+      } else {
+        Swal.fire({ icon: 'error', title: 'ผิดพลาด!', text: 'รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง' });
       }
-    }, 1500); 
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'Connection Error', text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้' });
+    }
   }
 
   async function loadData() {
-    Swal.fire({ title: 'กำลังโหลดข้อมูลหนี้ค้าง...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+    if ($.fn.DataTable.isDataTable('#mainTable')) {
+        table.destroy();
+        $('#tableBody').empty();
+    }
+
+    Swal.fire({ title: 'กำลังโหลดข้อมูลล่าสุด...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
     try {
       const response = await fetch(`${SCRIPT_URL}?action=getData`);
       const data = await response.json();
@@ -290,28 +340,42 @@
         `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="btn btn-sm btn-info text-white shadow-sm px-2">📍 นำทาง</a>` : 
         `<span class="text-muted small">ไม่มีพิกัด</span>`;
 
-      const fileBtn = row[10] ? `<button class="btn btn-sm btn-outline-primary px-3" onclick="viewFile('${row[10]}')">เปิดไฟล์</button>` : `<input type="file" class="d-none" id="f${i}" onchange="upload(this, ${i})"><button class="btn btn-sm btn-light border shadow-sm" onclick="document.getElementById('f${i}').click()">แนบไฟล์</button>`;
+      const noteText = row[15] ? row[15].toString().trim() : "";
+      const noteBtn = noteText !== "" ? 
+        `<button class="btn btn-warning btn-note shadow-sm" onmouseover="showBigTipNote('${noteText}')" onmouseout="hideBigTip()">📝</button>` : "-";
+
+      const hasFile1 = row[10] ? row[10].toString().trim() !== "" : false;
+      const fileBtn1 = hasFile1 ? 
+        `<button class="btn btn-sm btn-outline-primary px-3" onclick="viewFile('${row[10]}')">เปิดไฟล์ 1</button>` : 
+        `<input type="file" class="d-none" id="f1_${i}" onchange="upload(this, ${i}, 'K')"><button class="btn btn-sm btn-light border shadow-sm" onclick="document.getElementById('f1_${i}').click()">แนบไฟล์ 1</button>`;
+
+      const hasFile2 = row[14] ? row[14].toString().trim() !== "" : false;
+      let fileBtn2 = hasFile2 ? `<button class="btn btn-sm btn-outline-info px-3" onclick="viewFile('${row[14]}')">เปิดไฟล์ 2</button>` : 
+                   (hasFile1 ? `<input type="file" class="d-none" id="f2_${i}" onchange="upload(this, ${i}, 'O')"><button class="btn btn-sm btn-light border shadow-sm" onclick="document.getElementById('f2_${i}').click()">แนบไฟล์ 2</button>` : 
+                   `<button class="btn btn-sm btn-light border shadow-sm opacity-50" disabled>รอไฟล์ 1</button>`);
       
+      const nameSurname = row[3] || "-";
+
       html += `<tr>
         <td class="text-center">${i+1}</td>
         <td class="col-pea-small">${row[0]}</td>
-        <td class="col-name-wrap fw-bold">${row[3] || "-"}</td>
+        <td class="col-name-wrap fw-bold"><span class="blur-text" onclick="this.classList.toggle('active')">${nameSurname}</span></td>
         <td>${row[2]}</td>
         <td>${row[4]}</td>
         <td>${row[5]}</td>
         <td>${row[6]}</td>
         <td class="text-primary fw-bold">${parseFloat(debtVal.replace(/,/g, '')).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
         <td>${row[8]}</td>
-        <td data-search="${isDone?'done':'pending'}" class="text-center">
+        <td data-search="${isDone ? 'done' : 'pending'}" class="text-center" data-status-raw="${statusRaw}">
           <span class="badge-dot ${dotClass}" onmouseover="showBigTip('${hoverMsg}')" onmouseout="hideBigTip()"></span>
         </td>
+        <td class="text-center">${noteBtn}</td>
         <td class="text-center">${navBtn}</td>
-        <td class="text-center">${fileBtn}</td>
+        <td class="text-center">${fileBtn1}</td>
+        <td class="text-center">${fileBtn2}</td>
       </tr>`;
     });
     document.getElementById('tableBody').innerHTML = html;
-    
-    if (table) table.destroy();
     
     table = $('#mainTable').DataTable({ 
       paging: true, 
@@ -319,9 +383,7 @@
       lengthChange: false, 
       info: false,
       scrollX: true, 
-      columnDefs: [
-        { className: "text-nowrap", targets: [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11] }
-      ]
+      columnDefs: [{ className: "text-nowrap", targets: "_all" }]
     });
     
     table.on('draw', updateDashboardCards);
@@ -332,30 +394,51 @@
     tip.innerHTML = "<span style='color:#a349a4;'>📝 รายละเอียดสถานะล่าสุด</span><br><hr style='border: 2.5 solid #a349a4;'>" + m; 
     tip.style.display = 'block'; 
   }
+  function showBigTipNote(m) { 
+    const tip = document.getElementById('bigTooltip'); 
+    tip.innerHTML = "<span style='color:#ffc107;'>📌 หมายเหตุเพิ่มเติม</span><br><hr style='border: 2.5 solid #ffc107;'>" + m; 
+    tip.style.display = 'block'; 
+  }
   function hideBigTip() { document.getElementById('bigTooltip').style.display = 'none'; }
 
   function updateDashboardCards() {
     if (!table) return;
-    const filteredRows = table.rows({ search: 'applied' }).nodes();
-    let totalDebt = 0, doneAmt = 0, pendAmt = 0, dC = 0, pC = 0;
-    
-    $(filteredRows).each(function() {
-      let debtText = $(this).find('td:eq(7)').text().replace(/,/g, '');
+
+    let totalDebt = 0, doneAmt = 0, pendAmt = 0, dC = 0, pC = 0, paidAmtReal = 0;
+
+    table.rows({ search: 'applied' }).every(function() {
+      const data = this.node();
+      let debtText = $(data).find('td:eq(7)').text().replace(/,/g, '');
       let debt = parseFloat(debtText) || 0;
-      let status = $(this).find('td:eq(9)').attr('data-search');
+      
+      let searchStatus = $(data).find('td:eq(9)').attr('data-search');
+      let rawStatus = $(data).find('td:eq(9)').attr('data-status-raw');
       
       totalDebt += debt;
-      if (status === 'done') { doneAmt += debt; dC++; } else { pendAmt += debt; pC++; }
+      if (searchStatus === 'done') {
+        doneAmt += debt;
+        dC++;
+        if (rawStatus === "จ่ายแล้ว") {
+            paidAmtReal += debt;
+        }
+      } else {
+        pendAmt += debt;
+        pC++;
+      }
     });
     
     document.getElementById('sumAmount').innerText = totalDebt.toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('sumDone').innerText = doneAmt.toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('sumPending').innerText = pendAmt.toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('sumPaidReal').innerText = paidAmtReal.toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('totalJobs').innerText = (dC + pC);
     document.getElementById('doneJobs').innerText = dC;
     document.getElementById('pendingJobs').innerText = pC;
-    document.getElementById('pctDone').innerText = `คิดเป็น ${totalDebt > 0 ? ((doneAmt/totalDebt)*100).toFixed(1) : 0}%`;
-    document.getElementById('pctPending').innerText = `คิดเป็น ${totalDebt > 0 ? ((pendAmt/totalDebt)*100).toFixed(1) : 0}%`;
+    
+    let pct = totalDebt > 0 ? ((doneAmt/totalDebt)*100).toFixed(1) : 0;
+    let pctP = totalDebt > 0 ? ((pendAmt/totalDebt)*100).toFixed(1) : 0;
+    document.getElementById('pctDone').innerText = `คิดเป็น ${pct}%`;
+    document.getElementById('pctPending').innerText = `คิดเป็น ${pctP}%`;
   }
 
   function populateSelects(data) {
@@ -363,8 +446,10 @@
     const reas = [...new Set(data.map(r => r[8]))].filter(v => v).sort();
     const fPEA = document.getElementById('fPEA');
     const fReason = document.getElementById('fReason');
-    peas.forEach(v => { let opt = new Option(v, v); fPEA.add(opt); });
-    reas.forEach(v => { let opt = new Option(v, v); fReason.add(opt); });
+    fPEA.innerHTML = '<option value="">ทุก กฟฟ.</option>';
+    fReason.innerHTML = '<option value="">ทุกสาเหตุ</option>';
+    peas.forEach(v => { fPEA.add(new Option(v, v)); });
+    reas.forEach(v => { fReason.add(new Option(v, v)); });
   }
 
   function runFilters() { 
@@ -397,21 +482,31 @@
     new bootstrap.Modal('#fileModal').show();
   }
 
-  async function upload(input, idx) {
+  async function upload(input, idx, colLabel) {
     if (!input.files[0]) return;
     Swal.fire({ title: 'กำลังอัปโหลดไฟล์เข้าระบบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ base64: e.target.result, fileName: input.files[0].name, rowId: idx + 1 }) });
+        const response = await fetch(SCRIPT_URL, { 
+          method: 'POST', 
+          body: JSON.stringify({ 
+            base64: e.target.result, 
+            fileName: input.files[0].name, 
+            rowId: idx + 1,
+            targetCol: colLabel
+          }) 
+        });
         const res = await response.json();
-        if(res.success) { Swal.fire({ icon: 'success', title: 'สำเร็จ!', timer: 1200, showConfirmButton: false }); loadData(); }
+        if(res.success) { 
+          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'อัปโหลดลงคอลัมน์ ' + colLabel + ' เรียบร้อย', timer: 1500, showConfirmButton: false }); 
+          loadData(); 
+        }
       } catch(err) { Swal.fire('Error', 'ไม่สามารถอัปโหลดไฟล์ได้', 'error'); }
     };
     reader.readAsDataURL(input.files[0]);
   }
 
-  // --- จุดที่แก้ไข: คืนค่าหัวตารางแผนภูมิสรุปให้ครบถ้วน ---
   function openChartModal() {
     const summary = {};
     const filteredRows = table.rows({ search: 'applied' }).nodes();
@@ -436,31 +531,28 @@
     const ctx = document.getElementById('peaSummaryChart').getContext('2d');
     myChart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [ { label: 'ลงสถานะแล้ว (บาท)', data: labels.map(l => summary[l].dA), backgroundColor: '#198754' }, { label: 'ยังไม่ลงสถานะ (บาท)', data: labels.map(l => summary[l].pA), backgroundColor: '#dc3545' } ] }, options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true } } } });
     
-    // คืนค่าโครงสร้างตารางเดิมตามที่คุณระบุมา
     let h = `<table class="table table-bordered table-striped text-center">
               <thead class="table-dark">
                 <tr>
                   <th>กฟฟ.</th>
-                  <th>ยอดรวมค้าง (บาท)</th>
+                  <th>ยอดรวมค้าง</th>
                   <th>ลงสถานะแล้ว (งาน / บาท)</th>
-                  <th>ลงสถานะแล้ว %</th>
+                  <th>ลงสถานะ %</th>
                   <th>ยังไม่ลงสถานะ (งาน / บาท)</th>
-                  <th>ยังไม่ลงสถานะ %</th>
+                  <th>ยังไม่ลง %</th>
                 </tr>
               </thead>
               <tbody>`;
               
     labels.forEach(l => {
       const s = summary[l];
-      const pD = ((s.dA/s.tA)*100 || 0).toFixed(1);
-      const pP = ((s.pA/s.tA)*100 || 0).toFixed(1);
       h += `<tr>
               <td class="fw-bold">${l}</td>
               <td>${s.tA.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-              <td class="text-success">${s.dJ} งาน / ${s.dA.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-              <td class="text-success fw-bold">${pD}%</td>
-              <td class="text-danger">${s.pJ} งาน / ${s.pA.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-              <td class="text-danger fw-bold">${pP}%</td>
+              <td class="text-success">${s.dJ} งาน / ${s.dA.toLocaleString()}</td>
+              <td class="text-success fw-bold">${((s.dA/s.tA)*100 || 0).toFixed(1)}%</td>
+              <td class="text-danger">${s.pJ} งาน / ${s.pA.toLocaleString()}</td>
+              <td class="text-danger fw-bold">${((s.pA/s.tA)*100 || 0).toFixed(1)}%</td>
             </tr>`;
     });
     
@@ -472,6 +564,14 @@
     html2canvas(document.getElementById('chartCaptureArea')).then(canvas => { 
       const link = document.createElement('a'); link.download = 'PEA_NPN_Report_Summary.png'; link.href = canvas.toDataURL(); link.click(); 
     }); 
+  }
+
+  function toggleBlurAll() {
+    const names = document.querySelectorAll('.blur-text');
+    const btn = document.getElementById('btnBlurToggle');
+    const isHidden = btn.innerText.includes("แสดง");
+    names.forEach(n => isHidden ? n.classList.add('active') : n.classList.remove('active'));
+    btn.innerText = isHidden ? "🔒 ปิดบังชื่อทั้งหมด" : "👁️ แสดงชื่อทั้งหมด";
   }
 </script>
 </body>
